@@ -32,12 +32,10 @@ class HTMLReport:
         depending on if the user specified the --minimize option"""
         if self.minimize:
             js_url = f"https://cdn.jsdelivr.net/gh/salesforce/cloudsplaining@{__version__}/cloudsplaining/output/dist/js/index.js"
-            bundle = f'<script type="text/javascript" src="{js_url}"></script>'
-            return bundle
+            return f'<script type="text/javascript" src="{js_url}"></script>'
         else:
             bundle_content = app_bundle_path.read_text(encoding="utf-8")
-            bundle = f'<script type="text/javascript">\n{bundle_content}\n</script>'
-            return bundle
+            return f'<script type="text/javascript">\n{bundle_content}\n</script>'
 
     @property
     def vendor_bundle(self) -> str:
@@ -46,13 +44,11 @@ class HTMLReport:
 
         if self.minimize:
             js_url = f"https://cdn.jsdelivr.net/gh/salesforce/cloudsplaining@{__version__}/cloudsplaining/output/dist/js/chunk-vendors.js"
-            bundle = f'<script type="text/javascript" src="{js_url}"></script>'
-            return bundle
+            return f'<script type="text/javascript" src="{js_url}"></script>'
         else:
             vendor_bundle_path = get_vendor_bundle_path()
             bundle_content = vendor_bundle_path.read_text(encoding="utf-8")
-            bundle = f'<script type="text/javascript">\n{bundle_content}\n</script>'
-            return bundle
+            return f'<script type="text/javascript">\n{bundle_content}\n</script>'
 
     def get_html_report(self) -> str:
         """Returns the rendered HTML report"""

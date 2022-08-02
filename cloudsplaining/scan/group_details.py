@@ -37,26 +37,38 @@ class GroupDetailList:
 
     def get_group_detail(self, name: str) -> Optional["GroupDetail"]:
         """Get a GroupDetail object by providing the Name of the group. This is useful to UserDetail objects"""
-        for group_detail in self.groups:
-            if group_detail.group_name == name:
-                return group_detail
-        return None
+        return next(
+            (
+                group_detail
+                for group_detail in self.groups
+                if group_detail.group_name == name
+            ),
+            None,
+        )
 
     def get_all_allowed_actions_for_group(self, name: str) -> Optional[List[str]]:
         """Returns a list of all allowed actions by the group across all its policies"""
-        for group_detail in self.groups:
-            if group_detail.group_name == name:
-                return group_detail.all_allowed_actions
-        return None
+        return next(
+            (
+                group_detail.all_allowed_actions
+                for group_detail in self.groups
+                if group_detail.group_name == name
+            ),
+            None,
+        )
 
     def get_all_iam_statements_for_group(
         self, name: str
     ) -> Optional[List[StatementDetail]]:
         """Returns a list of all StatementDetail objects across all the policies assigned to the group"""
-        for group_detail in self.groups:
-            if group_detail.group_name == name:
-                return group_detail.all_iam_statements
-        return None
+        return next(
+            (
+                group_detail.all_iam_statements
+                for group_detail in self.groups
+                if group_detail.group_name == name
+            ),
+            None,
+        )
 
     @property
     def group_names(self) -> List[str]:
@@ -79,14 +91,13 @@ class GroupDetailList:
         """Return JSON representation of attached inline policies"""
         results = {}
         for group_detail in self.groups:
-            results.update(group_detail.inline_policies_json)
+            results |= group_detail.inline_policies_json
         return results
 
     @property
     def json(self) -> Dict[str, Dict[str, Any]]:
         """Get all JSON results"""
-        result = {group.group_id: group.json for group in self.groups}
-        return result
+        return {group.group_id: group.json for group in self.groups}
 
 
 # pylint: disable=too-many-instance-attributes
@@ -182,40 +193,36 @@ class GroupDetail:
     @property
     def attached_managed_policies_json(self) -> Dict[str, Dict[str, Any]]:
         """Return JSON representation of attached managed policies"""
-        policies = {
+        return {
             policy.policy_id: policy.json_large
             for policy in self.attached_managed_policies
         }
-        return policies
 
     @property
     def attached_managed_policies_pointer_json(self) -> Dict[str, str]:
         """Return metadata on attached managed policies so you can look it up in the policies section later."""
-        policies = {
+        return {
             policy.policy_id: policy.policy_name
             for policy in self.attached_managed_policies
         }
-        return policies
 
     @property
     def attached_customer_managed_policies_pointer_json(self) -> Dict[str, str]:
         """Return metadata on attached managed policies so you can look it up in the policies section later."""
-        policies = {
+        return {
             policy.policy_id: policy.policy_name
             for policy in self.attached_managed_policies
             if not is_aws_managed(policy.arn)
         }
-        return policies
 
     @property
     def attached_aws_managed_policies_pointer_json(self) -> Dict[str, str]:
         """Return metadata on attached managed policies so you can look it up in the policies section later."""
-        policies = {
+        return {
             policy.policy_id: policy.policy_name
             for policy in self.attached_managed_policies
             if is_aws_managed(policy.arn)
         }
-        return policies
 
     @property
     def all_infrastructure_modification_actions_by_inline_policies(self) -> List[str]:
@@ -228,23 +235,21 @@ class GroupDetail:
     @property
     def inline_policies_json(self) -> Dict[str, Dict[str, Any]]:
         """Return JSON representation of attached inline policies"""
-        policies = {
+        return {
             policy.policy_id: policy.json_large for policy in self.inline_policies
         }
-        return policies
 
     @property
     def inline_policies_pointer_json(self) -> Dict[str, str]:
         """Return metadata on attached inline policies so you can look it up in the policies section later."""
-        policies = {
+        return {
             policy.policy_id: policy.policy_name for policy in self.inline_policies
         }
-        return policies
 
     @property
     def json(self) -> Dict[str, Any]:
         """Return the JSON representation of the Group Detail"""
-        this_group_detail = dict(
+        return dict(
             arn=self.arn,
             name=self.group_name,
             create_date=self.create_date,
@@ -255,4 +260,3 @@ class GroupDetail:
             aws_managed_policies=self.attached_aws_managed_policies_pointer_json,
             is_excluded=self.is_excluded,
         )
-        return this_group_detail

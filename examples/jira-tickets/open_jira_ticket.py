@@ -84,17 +84,7 @@ def jira_login(server):
     options = {
         "server": server,
     }
-    # Supporting HTTP BASIC Auth right now.
-    # You can extend this script to support Cookie-based, OAuth or Kerberos."""
-    # Docs: https://jira.readthedocs.io/en/master/examples.html#authentication
-    auth_jira = JIRA(
-        options=options,
-        basic_auth=(
-            username,
-            password
-        )
-    )
-    return auth_jira
+    return JIRA(options=options, basic_auth=(username, password))
 
 
 def add_attachment(jira, issue, attachment_path):
@@ -120,7 +110,7 @@ def list_attachments(issue):
         print("Name: '{filename}', size: {size}".format(
             filename=attachment.filename, size=attachment.size))
         # to read content use `get` method:
-        print("Content: '{}'".format(attachment.get()))
+        print(f"Content: '{attachment.get()}'")
 
 
 if __name__ == '__main__':

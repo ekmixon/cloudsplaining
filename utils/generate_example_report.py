@@ -65,7 +65,7 @@ def generate_example_report():
         os.remove(index_output_file)
     print(f"Copying HTML results to the index file: {index_output_file}")
     shutil.copyfile(os.path.join(output_directory, "iam-report-fake.html"), index_output_file)
-    url = "file://%s" % os.path.abspath(index_output_file)
+    url = f"file://{os.path.abspath(index_output_file)}"
     webbrowser.open(url, new=2)
 
 

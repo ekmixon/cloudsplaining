@@ -247,22 +247,18 @@ def download_account_authorization_details(
         aws_session_token=aws_session_token,
     )
     include_non_default_policy_versions = False
-    authorization_details = get_account_authorization_details(
+    return get_account_authorization_details(
         session_data, include_non_default_policy_versions
     )
-    return authorization_details
 
 
 def get_exclusions(exclusions_file: Optional[str] = None) -> Exclusions:
     """Get the exclusions configuration from a file"""
-    # Get the exclusions configuration
-    if exclusions_file:
-        with open(exclusions_file, "r") as yaml_file:
-            try:
-                exclusions_cfg = yaml.safe_load(yaml_file)
-            except yaml.YAMLError as exc:
-                logger.critical(exc)
-        exclusions = Exclusions(exclusions_cfg)
-    else:
-        exclusions = DEFAULT_EXCLUSIONS
-    return exclusions
+    if not exclusions_file:
+        return DEFAULT_EXCLUSIONS
+    with open(exclusions_file, "r") as yaml_file:
+        try:
+            exclusions_cfg = yaml.safe_load(yaml_file)
+        except yaml.YAMLError as exc:
+            logger.critical(exc)
+    return Exclusions(exclusions_cfg)

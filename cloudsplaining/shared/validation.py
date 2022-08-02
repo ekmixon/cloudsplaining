@@ -56,8 +56,7 @@ def check(conf_schema: Schema, conf: Dict[str, List[Any]]) -> bool:
 
 def check_exclusions_schema(cfg: Dict[str, List[str]]) -> bool:
     """Determine whether or not the exclusions file meets the required format"""
-    result = check(EXCLUSIONS_TEMPLATE_SCHEMA, cfg)
-    if result:
+    if result := check(EXCLUSIONS_TEMPLATE_SCHEMA, cfg):
         return result
     else:
         raise Exception(
@@ -67,5 +66,4 @@ def check_exclusions_schema(cfg: Dict[str, List[str]]) -> bool:
 
 def check_authorization_details_schema(cfg: Dict[str, List[Any]]) -> bool:
     """Determine whether or not the file meets the required format of the authorizations file"""
-    result = check(AUTHORIZATION_DETAILS_SCHEMA, cfg)
-    return result
+    return check(AUTHORIZATION_DETAILS_SCHEMA, cfg)

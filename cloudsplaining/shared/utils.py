@@ -36,14 +36,14 @@ def remove_wildcard_only_actions(actions_list: List[str]) -> List[str]:
         service_prefix, action_name = action.split(":")
         if service_prefix not in all_service_prefixes:
             continue  # pragma: no cover
-        action_data = get_action_data(service_prefix, action_name)
-        if action_data:
+        if action_data := get_action_data(service_prefix, action_name):
             if len(action_data.get(service_prefix)) == 0:
                 pass  # pragma: no cover
             elif len(action_data.get(service_prefix)) == 1:
-                if action_data[service_prefix][0]["resource_arn_format"] == "*":
-                    pass
-                else:
+                if (
+                    action_data[service_prefix][0]["resource_arn_format"]
+                    != "*"
+                ):
                     # Let's return the CamelCase action name format
                     results.append(action_data[service_prefix][0]["action"])
             else:
@@ -80,8 +80,7 @@ def get_full_policy_path(arn: str) -> str:
     :param arn:
     :return:
     """
-    resource_string = arn.partition("/")[2]
-    return resource_string
+    return arn.partition("/")[2]
 
 
 def get_policy_name(arn: str) -> str:
@@ -94,8 +93,7 @@ def get_policy_name(arn: str) -> str:
         Output: ExampleRole
     :return:
     """
-    policy_name = arn.rpartition("/")[2]
-    return policy_name
+    return arn.rpartition("/")[2]
 
 
 def capitalize_first_character(some_string: str) -> str:
@@ -136,8 +134,7 @@ def write_results_data_file(
 
 def read_yaml_file(filename: str) -> Dict[str, Any]:
     """Reads a YAML file, safe loads, and returns the dictionary"""
-    cfg: Dict[str, Any] = yaml.safe_load(Path(filename).read_text())
-    return cfg
+    return yaml.safe_load(Path(filename).read_text())
 
 
 def print_green(string: Any) -> None:

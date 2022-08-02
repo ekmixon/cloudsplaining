@@ -53,19 +53,27 @@ class RoleDetailList:
 
     def get_all_allowed_actions_for_role(self, name: str) -> Optional[List[str]]:
         """Returns a list of all allowed actions by the role across all its policies"""
-        for role_detail in self.roles:
-            if role_detail.role_name == name:
-                return role_detail.all_allowed_actions
-        return None
+        return next(
+            (
+                role_detail.all_allowed_actions
+                for role_detail in self.roles
+                if role_detail.role_name == name
+            ),
+            None,
+        )
 
     def get_all_iam_statements_for_role(
         self, name: str
     ) -> Optional[List[StatementDetail]]:
         """Returns a list of all StatementDetail objects across all the policies assigned to the role"""
-        for role_detail in self.roles:
-            if role_detail.role_name == name:
-                return role_detail.all_iam_statements
-        return None
+        return next(
+            (
+                role_detail.all_iam_statements
+                for role_detail in self.roles
+                if role_detail.role_name == name
+            ),
+            None,
+        )
 
     @property
     def role_names(self) -> List[str]:
@@ -88,14 +96,13 @@ class RoleDetailList:
         """Return JSON representation of attached inline policies"""
         results = {}
         for role_detail in self.roles:
-            results.update(role_detail.inline_policies_json)
+            results |= role_detail.inline_policies_json
         return results
 
     @property
     def json(self) -> Dict[str, Dict[str, Any]]:
         """Get all JSON results"""
-        result = {role.role_id: role.json for role in self.roles}
-        return result
+        return {role.role_id: role.json for role in self.roles}
 
 
 # pylint: disable=too-many-instance-attributes
@@ -133,8 +140,7 @@ class RoleDetail:
 
         # Metadata in object form
         self.assume_role_policy_document = None
-        assume_role_policy = role_detail.get("AssumeRolePolicyDocument")
-        if assume_role_policy:
+        if assume_role_policy := role_detail.get("AssumeRolePolicyDocument"):
             self.assume_role_policy_document = AssumeRolePolicyDocument(
                 assume_role_policy
             )
@@ -229,22 +235,20 @@ class RoleDetail:
     @property
     def attached_customer_managed_policies_pointer_json(self) -> Dict[str, str]:
         """Return metadata on attached managed policies so you can look it up in the policies section later."""
-        policies = {
+        return {
             policy.policy_id: policy.policy_name
             for policy in self.attached_managed_policies
             if not is_aws_managed(policy.arn)
         }
-        return policies
 
     @property
     def attached_aws_managed_policies_pointer_json(self) -> Dict[str, str]:
         """Return metadata on attached managed policies so you can look it up in the policies section later."""
-        policies = {
+        return {
             policy.policy_id: policy.policy_name
             for policy in self.attached_managed_policies
             if is_aws_managed(policy.arn)
         }
-        return policies
 
     @property
     def all_infrastructure_modification_actions_by_inline_policies(self) -> List[str]:
@@ -257,18 +261,16 @@ class RoleDetail:
     @property
     def inline_policies_json(self) -> Dict[str, Dict[str, Any]]:
         """Return JSON representation of attached inline policies"""
-        policies = {
+        return {
             policy.policy_id: policy.json_large for policy in self.inline_policies
         }
-        return policies
 
     @property
     def inline_policies_pointer_json(self) -> Dict[str, str]:
         """Return metadata on attached inline policies so you can look it up in the policies section later."""
-        policies = {
+        return {
             policy.policy_id: policy.policy_name for policy in self.inline_policies
         }
-        return policies
 
     @property
     def json(self) -> Dict[str, Any]:
@@ -277,7 +279,7 @@ class RoleDetail:
             assume_role_json = self.assume_role_policy_document.json
         else:
             assume_role_json = {}
-        this_role_detail = dict(
+        return dict(
             arn=self.arn,
             assume_role_policy=dict(PolicyDocument=assume_role_json),
             create_date=self.create_date,
@@ -292,4 +294,3 @@ class RoleDetail:
             aws_managed_policies=self.attached_aws_managed_policies_pointer_json,
             is_excluded=self.is_excluded,
         )
-        return this_role_detail

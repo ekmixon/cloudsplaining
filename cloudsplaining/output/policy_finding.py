@@ -79,12 +79,14 @@ class PolicyFinding:
         """Return a list of actions that could cause resource exposure via actions at the 'Permissions management'
         access level, if applicable."""
         if self.always_exclude_actions:
-            results = [
+            return [
                 action
                 for action in self.policy_document.permissions_management_without_constraints
-                if not is_name_excluded(action.lower(), self.always_exclude_actions)
+                if not is_name_excluded(
+                    action.lower(), self.always_exclude_actions
+                )
             ]
-            return results
+
         else:
             return self.policy_document.permissions_management_without_constraints
 
@@ -96,14 +98,13 @@ class PolicyFinding:
     @property
     def data_exfiltration(self) -> List[str]:
         """Returns data exfiltration actions in the policy, if present"""
-        result = [
+        return [
             action
             for action in self.policy_document.allows_specific_actions_without_constraints(
                 READ_ONLY_DATA_EXFILTRATION_ACTIONS
             )
             if action.lower() not in self.exclusions.exclude_actions
         ]
-        return result
 
     @property
     def service_wildcard(self) -> List[str]:
@@ -113,20 +114,18 @@ class PolicyFinding:
     @property
     def credentials_exposure(self) -> List[str]:
         """Determine if the action returns credentials"""
-        # https://gist.github.com/kmcquade/33860a617e651104d243c324ddf7992a
-        results = [
+        return [
             action
             for action in self.policy_document.allows_specific_actions_without_constraints(
                 ACTIONS_THAT_RETURN_CREDENTIALS
             )
             if action.lower() not in self.exclusions.exclude_actions
         ]
-        return results
 
     @property
     def results(self) -> Dict[str, Any]:
         """Return the results as JSON"""
-        findings = dict(
+        return dict(
             ServiceWildcard=self.service_wildcard,
             ServicesAffected=self.services_affected,
             PrivilegeEscalation=self.privilege_escalation,
@@ -135,4 +134,3 @@ class PolicyFinding:
             CredentialsExposure=self.credentials_exposure,
             InfrastructureModification=self.missing_resource_constraints_for_modify_actions,
         )
-        return findings

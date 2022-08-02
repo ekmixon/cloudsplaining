@@ -47,7 +47,7 @@ class InlinePolicy:
     @property
     def json(self) -> Dict[str, Any]:
         """Return JSON output for high risk actions"""
-        result = dict(
+        return dict(
             PolicyName=self.policy_name,
             PolicyId=self.policy_id,
             PolicyDocument=self.policy_document.json,
@@ -58,12 +58,11 @@ class InlinePolicy:
             CredentialsExposure=self.policy_document.credentials_exposure,
             is_excluded=self.is_excluded,
         )
-        return result
 
     @property
     def json_large(self) -> Dict[str, Any]:
         """Return JSON output - including Infra Modification actions, which can be large"""
-        result = dict(
+        return dict(
             PolicyName=self.policy_name,
             PolicyId=self.policy_id,
             PolicyDocument=self.policy_document.json,
@@ -75,4 +74,3 @@ class InlinePolicy:
             InfrastructureModification=self.policy_document.infrastructure_modification,
             is_excluded=self.is_excluded,
         )
-        return result

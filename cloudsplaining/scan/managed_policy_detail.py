@@ -86,34 +86,30 @@ class ManagedPolicyDetails:
     @property
     def json(self) -> Dict[str, Dict[str, Any]]:
         """Get all JSON results"""
-        result = {policy.policy_id: policy.json for policy in self.policy_details}
-        return result
+        return {policy.policy_id: policy.json for policy in self.policy_details}
 
     @property
     def json_large(self) -> Dict[str, Dict[str, Any]]:
         """Get all JSON results"""
-        result = {policy.policy_id: policy.json_large for policy in self.policy_details}
-        return result
+        return {policy.policy_id: policy.json_large for policy in self.policy_details}
 
     @property
     def json_large_aws_managed(self) -> Dict[str, Dict[str, Any]]:
         """Get all JSON results"""
-        result = {
+        return {
             policy.policy_id: policy.json_large
             for policy in self.policy_details
             if policy.managed_by == "AWS"
         }
-        return result
 
     @property
     def json_large_customer_managed(self) -> Dict[str, Dict[str, Any]]:
         """Get all JSON results"""
-        result = {
+        return {
             policy.policy_id: policy.json_large
             for policy in self.policy_details
             if policy.managed_by == "Customer"
         }
-        return result
 
 
 # pylint: disable=too-many-instance-attributes
@@ -185,25 +181,19 @@ class ManagedPolicy:
         return get_full_policy_path(self.arn)
 
     @property
-    def managed_by(self) -> str:  # pragma: no cover
+    def managed_by(self) -> str:    # pragma: no cover
         """Determine whether the policy is AWS-Managed or Customer-managed based on a Policy ARN pattern."""
-        if is_aws_managed(self.arn):
-            return "AWS"
-        else:
-            return "Customer"
+        return "AWS" if is_aws_managed(self.arn) else "Customer"
 
     @property
-    def account_id(self) -> str:  # pragma: no cover
+    def account_id(self) -> str:    # pragma: no cover
         """Return the account ID"""
-        if is_aws_managed(self.arn):
-            return "N/A"
-        else:
-            return get_account_from_arn(self.arn)  # type: ignore
+        return "N/A" if is_aws_managed(self.arn) else get_account_from_arn(self.arn)
 
     @property
     def json(self) -> Dict[str, Any]:
         """Return JSON output for high risk actions"""
-        result = dict(
+        return dict(
             PolicyName=self.policy_name,
             PolicyId=self.policy_id,
             Arn=self.arn,
@@ -221,12 +211,11 @@ class ManagedPolicy:
             CredentialsExposure=self.policy_document.credentials_exposure,
             is_excluded=self.is_excluded,
         )
-        return result
 
     @property
     def json_large(self) -> Dict[str, Any]:
         """Return JSON output - including Infra Modification actions, which can be large"""
-        result = dict(
+        return dict(
             PolicyName=self.policy_name,
             PolicyId=self.policy_id,
             Arn=self.arn,
@@ -246,4 +235,3 @@ class ManagedPolicy:
             is_excluded=self.is_excluded,
             # InfrastructureModification=self.policy_document.all_allowed_unrestricted_actions
         )
-        return result

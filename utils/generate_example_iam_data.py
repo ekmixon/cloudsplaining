@@ -56,7 +56,7 @@ exports.sample_iam_data = sample_iam_data;
 
 """
     if os.path.exists(sample_data_js_file):
-        print(f"Removing existing file and replacing its contents")
+        print("Removing existing file and replacing its contents")
         os.remove(sample_data_js_file)
 
     with open(sample_data_js_file, "w") as f:

@@ -253,9 +253,11 @@ class TestPolicyDocument(unittest.TestCase):
         policy_document = PolicyDocument(test_policy)
         allowed_actions = []
         for statement in policy_document.statements:
-            if not statement.has_resource_constraints:
-                if statement.expanded_actions:
-                    allowed_actions.extend(statement.expanded_actions)  # pragma: no cover
+            if (
+                not statement.has_resource_constraints
+                and statement.expanded_actions
+            ):
+                allowed_actions.extend(statement.expanded_actions)  # pragma: no cover
         self.assertListEqual(allowed_actions, [])
         self.assertListEqual(policy_document.all_allowed_unrestricted_actions, [])
         # print(json.dumps(policy_document.contains_statement_using_not_action, indent=4))

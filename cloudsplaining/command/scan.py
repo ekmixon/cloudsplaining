@@ -85,7 +85,7 @@ def scan(
     skip_open_report: bool,
     minimize: bool,
     verbose: str,
-) -> None:  # pragma: no cover
+) -> None:    # pragma: no cover
     """
     Given the path to account authorization details files and the exclusions config file, scan all inline and
     managed policies in the account to identify actions that do not leverage resource constraints.
@@ -130,7 +130,7 @@ def scan(
         # Open the report by default
         if not skip_open_report:
             print("Opening the HTML report")
-            url = "file://%s" % os.path.abspath(html_output_file)
+            url = f"file://{os.path.abspath(html_output_file)}"
             webbrowser.open(url, new=2)
 
     if os.path.isdir(input_file):
@@ -167,7 +167,7 @@ def scan(
             # Open the report by default
             if not skip_open_report:
                 print("Opening the HTML report")
-                url = "file://%s" % os.path.abspath(html_output_file)
+                url = f"file://{os.path.abspath(html_output_file)}"
                 webbrowser.open(url, new=2)
 
 
@@ -178,7 +178,7 @@ def scan_account_authorization_details(
     output_directory: str = os.getcwd(),
     write_data_files: bool = False,
     minimize: bool = False,
-) -> str:  # pragma: no cover
+) -> str:    # pragma: no cover
     """
     Given the path to account authorization details files and the exclusions config file, scan all inline and
     managed policies in the account to identify actions that do not leverage resource constraints.
@@ -194,12 +194,14 @@ def scan_account_authorization_details(
     )
     results = authorization_details.results
 
-    # Lazy method to get an account ID
-    account_id = ""
-    for role in results.get("roles", []):
-        if "arn:aws:iam::aws:" not in results["roles"][role]["arn"]:
-            account_id = get_account_from_arn(results["roles"][role]["arn"])
-            break
+    account_id = next(
+        (
+            get_account_from_arn(results["roles"][role]["arn"])
+            for role in results.get("roles", [])
+            if "arn:aws:iam::aws:" not in results["roles"][role]["arn"]
+        ),
+        "",
+    )
 
     html_report = HTMLReport(
         account_id=account_id,
@@ -233,7 +235,7 @@ def scan_account_authorization_details(
 
 def get_authorization_files_in_directory(
     directory: str,
-) -> List[str]:  # pragma: no cover
+) -> List[str]:    # pragma: no cover
     """Get a list of download-account-authorization-files in a directory"""
     file_list_with_full_path = [
         file.absolute() for file in Path(directory).glob("*.json")
@@ -243,9 +245,8 @@ def get_authorization_files_in_directory(
     for file in file_list_with_full_path:
         contents = file.read_text()
         account_authorization_details_cfg = json.loads(contents)
-        valid_schema = check_authorization_details_schema(
+        if valid_schema := check_authorization_details_schema(
             account_authorization_details_cfg
-        )
-        if valid_schema:
+        ):
             new_file_list.append(str(file))
     return new_file_list

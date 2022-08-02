@@ -45,8 +45,9 @@ class PolicyDocument:
         if not isinstance(statement_structure, list):
             statement_structure = [statement_structure]  # pragma: no cover
 
-        for statement in statement_structure:
-            self.statements.append(StatementDetail(statement))
+        self.statements.extend(
+            StatementDetail(statement) for statement in statement_structure
+        )
 
     @property
     def json(self) -> Dict[str, Any]:
@@ -69,11 +70,10 @@ class PolicyDocument:
         filter all denied statements from actions
         """
         for statement in self.statements:
-            if statement.effect_deny:
-                if statement.expanded_actions:
-                    allowed_actions = allowed_actions.difference(
-                        statement.expanded_actions
-                    )
+            if statement.effect_deny and statement.expanded_actions:
+                allowed_actions = allowed_actions.difference(
+                    statement.expanded_actions
+                )
         return allowed_actions
 
     @property
@@ -111,11 +111,14 @@ class PolicyDocument:
         actions_missing_resource_constraints = []
         for statement in self.statements:
             if statement.effect == "Allow":
-                for action in statement.missing_resource_constraints_for_modify_actions(
-                    self.exclusions
-                ):
-                    if action.lower() not in self.exclusions.exclude_actions:
-                        actions_missing_resource_constraints.append(action)
+                actions_missing_resource_constraints.extend(
+                    action
+                    for action in statement.missing_resource_constraints_for_modify_actions(
+                        self.exclusions
+                    )
+                    if action.lower() not in self.exclusions.exclude_actions
+                )
+
         return actions_missing_resource_constraints
 
     @property
@@ -139,9 +142,10 @@ class PolicyDocument:
         Rhino Security Labs.
         """
         escalations = []
-        all_allowed_unrestricted_actions_lowercase = set(
+        all_allowed_unrestricted_actions_lowercase = {
             x.lower() for x in self.all_allowed_unrestricted_actions
-        )
+        }
+
         all_allowed_unrestricted_actions_lowercase.update(
             [x.lower() for x in self.all_allowed_unrestrictable_actions]
         )
@@ -226,25 +230,24 @@ class PolicyDocument:
     @property
     def allows_data_exfiltration_actions(self) -> List[str]:
         """If any 'Data exfiltration' actions are allowed without resource constraints, return those actions."""
-        results = []
-        for action in self.allows_specific_actions_without_constraints(
-            READ_ONLY_DATA_EXFILTRATION_ACTIONS
-        ):
-            if action.lower() not in self.exclusions.exclude_actions:
-                results.append(action)
-        return results
+        return [
+            action
+            for action in self.allows_specific_actions_without_constraints(
+                READ_ONLY_DATA_EXFILTRATION_ACTIONS
+            )
+            if action.lower() not in self.exclusions.exclude_actions
+        ]
 
     @property
     def credentials_exposure(self) -> List[str]:
         """Determine if the action returns credentials"""
-        # https://gist.github.com/kmcquade/33860a617e651104d243c324ddf7992a
-        results = []
-        for action in self.allows_specific_actions_without_constraints(
-            ACTIONS_THAT_RETURN_CREDENTIALS
-        ):
-            if action.lower() not in self.exclusions.exclude_actions:
-                results.append(action)
-        return results
+        return [
+            action
+            for action in self.allows_specific_actions_without_constraints(
+                ACTIONS_THAT_RETURN_CREDENTIALS
+            )
+            if action.lower() not in self.exclusions.exclude_actions
+        ]
 
     @property
     def service_wildcard(self) -> List[str]:

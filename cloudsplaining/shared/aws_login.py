@@ -52,8 +52,7 @@ def get_boto3_resource(
 def get_current_account_id(sts_client: boto3.Session.client) -> str:
     """Get the current account ID"""
     response = sts_client.get_caller_identity()
-    current_account_id: str = response.get("Account", "")
-    return current_account_id
+    return response.get("Account", "")
 
 
 def get_available_regions(service: str) -> List[str]:

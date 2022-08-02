@@ -60,7 +60,7 @@ class TestPolicyFinding(unittest.TestCase):
         }
         policy_document = PolicyDocument(test_policy)
 
-        exclusions_cfg = dict()
+        exclusions_cfg = {}
         exclusions = Exclusions(exclusions_cfg)
 
         policy_finding = PolicyFinding(policy_document, exclusions)
@@ -92,7 +92,7 @@ class TestPolicyFinding(unittest.TestCase):
         }
         policy_document = PolicyDocument(test_policy)
 
-        exclusions_cfg = dict()
+        exclusions_cfg = {}
         exclusions = Exclusions(exclusions_cfg)
 
         policy_finding = PolicyFinding(policy_document, exclusions)

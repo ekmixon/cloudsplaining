@@ -39,19 +39,27 @@ class UserDetailList:
 
     def get_all_allowed_actions_for_user(self, name: str) -> Optional[List[str]]:
         """Returns a list of all allowed actions by the user across all its policies"""
-        for user_detail in self.users:
-            if user_detail.user_name == name:
-                return user_detail.all_allowed_actions
-        return None
+        return next(
+            (
+                user_detail.all_allowed_actions
+                for user_detail in self.users
+                if user_detail.user_name == name
+            ),
+            None,
+        )
 
     def get_all_iam_statements_for_user(
         self, name: str
     ) -> Optional[List[StatementDetail]]:
         """Returns a list of all StatementDetail objects across all the policies assigned to the user"""
-        for user_detail in self.users:
-            if user_detail.user_name == name:
-                return user_detail.all_iam_statements
-        return None
+        return next(
+            (
+                user_detail.all_iam_statements
+                for user_detail in self.users
+                if user_detail.user_name == name
+            ),
+            None,
+        )
 
     @property
     def user_names(self) -> List[str]:
@@ -74,14 +82,13 @@ class UserDetailList:
         """Return JSON representation of attached inline policies"""
         results = {}
         for user_detail in self.users:
-            results.update(user_detail.inline_policies_json)
+            results |= user_detail.inline_policies_json
         return results
 
     @property
     def json(self) -> Dict[str, Dict[str, Any]]:
         """Get all JSON results"""
-        result = {user.user_id: user.json for user in self.users}
-        return result
+        return {user.user_id: user.json for user in self.users}
 
 
 # pylint: disable=too-many-instance-attributes,unused-argument
@@ -118,8 +125,7 @@ class UserDetail:
 
         # Groups
         self.groups: List[GroupDetail] = []
-        group_list = user_detail.get("GroupList")
-        if group_list:
+        if group_list := user_detail.get("GroupList"):
             self._add_group_details(group_list, all_group_details)
         # self.inline_policies = user_detail.get("UserPolicyList")
         # self.groups = user_detail.get("GroupList")
@@ -169,8 +175,7 @@ class UserDetail:
         self, group_list: List[str], all_group_details: GroupDetailList
     ) -> None:
         for group in group_list:
-            this_group_detail = all_group_details.get_group_detail(group)
-            if this_group_detail:
+            if this_group_detail := all_group_details.get_group_detail(group):
                 self.groups.append(this_group_detail)
 
     @property
@@ -200,39 +205,36 @@ class UserDetail:
     @property
     def attached_managed_policies_json(self) -> Dict[str, Dict[str, Any]]:
         """Return JSON representation of attached managed policies"""
-        policies = {
-            policy.policy_id: policy.json for policy in self.attached_managed_policies
+        return {
+            policy.policy_id: policy.json
+            for policy in self.attached_managed_policies
         }
-        return policies
 
     @property
     def attached_managed_policies_pointer_json(self) -> Dict[str, str]:
         """Return JSON representation of attached managed policies - but just with pointers to the Policy ID"""
-        policies = {
+        return {
             policy.policy_id: policy.policy_name
             for policy in self.attached_managed_policies
         }
-        return policies
 
     @property
     def attached_customer_managed_policies_pointer_json(self) -> Dict[str, str]:
         """Return metadata on attached managed policies so you can look it up in the policies section later."""
-        policies = {
+        return {
             policy.policy_id: policy.policy_name
             for policy in self.attached_managed_policies
             if not is_aws_managed(policy.arn)
         }
-        return policies
 
     @property
     def attached_aws_managed_policies_pointer_json(self) -> Dict[str, str]:
         """Return metadata on attached managed policies so you can look it up in the policies section later."""
-        policies = {
+        return {
             policy.policy_id: policy.policy_name
             for policy in self.attached_managed_policies
             if is_aws_managed(policy.arn)
         }
-        return policies
 
     @property
     def all_infrastructure_modification_actions_by_inline_policies(self) -> List[str]:
@@ -245,33 +247,30 @@ class UserDetail:
     @property
     def inline_policies_json(self) -> Dict[str, Dict[str, Any]]:
         """Return JSON representation of attached inline policies"""
-        policies = {
+        return {
             policy.policy_id: policy.json_large for policy in self.inline_policies
         }
-        return policies
 
     @property
     def inline_policies_pointer_json(self) -> Dict[str, str]:
         """Return metadata on attached inline policies so you can look it up in the policies section later."""
-        policies = {
+        return {
             policy.policy_id: policy.policy_name for policy in self.inline_policies
         }
-        return policies
 
     @property
     def groups_json(self) -> Dict[str, Dict[str, Any]]:
         """Return JSON representation of group object"""
-        these_groups = {
+        return {
             group.group_name: group.json  # TODO: Change this to a group pointer?
             for group in self.groups
         }
-        return these_groups
 
     @property
     def json(self) -> Dict[str, Any]:
         """Return the JSON representation of the User Detail"""
 
-        this_user_detail = dict(
+        return dict(
             arn=self.arn,
             create_date=self.create_date,
             id=self.user_id,
@@ -283,4 +282,3 @@ class UserDetail:
             aws_managed_policies=self.attached_aws_managed_policies_pointer_json,
             is_excluded=self.is_excluded,
         )
-        return this_user_detail

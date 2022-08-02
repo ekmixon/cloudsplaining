@@ -58,10 +58,9 @@ END = "\033[0m"
         ["critical", "error", "warning", "info", "debug"], case_sensitive=False
     ),
 )
-# pylint: disable=redefined-builtin
 def scan_policy_file(
     input_file: str, exclusions_file: str, high_priority_only: bool, verbose: str
-) -> None:  # pragma: no cover
+) -> None:    # pragma: no cover
     """Scan a single policy file to identify missing resource constraints."""
     if verbose:
         log_level = getattr(logging, verbose.upper())
@@ -85,14 +84,9 @@ def scan_policy_file(
             exclusions_cfg = yaml.safe_load(yaml_file)
         except yaml.YAMLError as exc:
             logger.critical(exc)
-    # exclusions = Exclusions(exclusions_cfg)
-
-    # Run the scan and get the raw data.
-    results = scan_policy(policy, exclusions_cfg)
-
-    # There will only be one finding in the results but it is in a list.
-    results_exist = 0
-    if results:
+    if results := scan_policy(policy, exclusions_cfg):
+        # There will only be one finding in the results but it is in a list.
+        results_exist = 0
         # Privilege Escalation
         if results.get("PrivilegeEscalation"):
             print(

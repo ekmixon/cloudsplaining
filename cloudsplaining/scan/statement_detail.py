@@ -37,7 +37,7 @@ class StatementDetail:
         self.json = statement
         self.statement = statement
         self.effect = statement["Effect"]
-        self.condition = statement.get("Condition", None)
+        self.condition = statement.get("Condition")
         self.resources = self._resources()
         self.actions = self._actions()
         self.not_action = self._not_action()
@@ -55,42 +55,34 @@ class StatementDetail:
 
     def _actions(self) -> List[str]:
         """Holds the actions in a statement"""
-        actions = self.statement.get("Action")
-        if not actions:
+        if actions := self.statement.get("Action"):
+            return actions if isinstance(actions, list) else [actions]
+        else:
             return []
-        if not isinstance(actions, list):
-            return [actions]
-        return actions
 
     def _resources(self) -> List[str]:
         """Holds the resource ARNs in a statement"""
-        resources = self.statement.get("Resource")
-        if not resources:
+        if resources := self.statement.get("Resource"):
+                # If it's a string, turn it into a list
+            return resources if isinstance(resources, list) else [resources]
+        else:
             return []
-        # If it's a string, turn it into a list
-        if not isinstance(resources, list):
-            return [resources]
-        return resources
 
     def _not_action(self) -> List[str]:
         """Holds the NotAction details.
         We won't do anything with it - but we will flag it as something for the assessor to triage."""
-        not_action = self.statement.get("NotAction")
-        if not not_action:
+        if not_action := self.statement.get("NotAction"):
+            return not_action if isinstance(not_action, list) else [not_action]
+        else:
             return []
-        if not isinstance(not_action, list):
-            return [not_action]
-        return not_action
 
     def _not_resource(self) -> List[str]:
         """Holds the NotResource details.
         We won't do anything with it - but we will flag it as something for the assessor to triage."""
-        not_resource = self.statement.get("NotResource")
-        if not not_resource:
+        if not_resource := self.statement.get("NotResource"):
+            return not_resource if isinstance(not_resource, list) else [not_resource]
+        else:
             return []
-        if not isinstance(not_resource, list):
-            return [not_resource]
-        return not_resource
 
     # @property
     def _not_action_effective_actions(self) -> Optional[List[str]]:
@@ -107,14 +99,15 @@ class StatementDetail:
         if not self.has_resource_wildcard and self.effect_allow:
             opposite_actions = []
             for arn in self.resources:
-                actions_specific_to_arn = get_actions_matching_arn(arn)
-                if actions_specific_to_arn:
+                if actions_specific_to_arn := get_actions_matching_arn(arn):
                     opposite_actions.extend(actions_specific_to_arn)
 
-            for opposite_action in opposite_actions:
-                # If it's in NotActions, then it is not an action we want
-                if opposite_action.lower() not in not_actions_expanded_lowercase:
-                    effective_actions.append(opposite_action)
+            effective_actions.extend(
+                opposite_action
+                for opposite_action in opposite_actions
+                if opposite_action.lower() not in not_actions_expanded_lowercase
+            )
+
             effective_actions.sort()
             return effective_actions
 
@@ -172,12 +165,12 @@ class StatementDetail:
     @property
     def effect_deny(self) -> bool:
         """Check if the Effect of the Policy is 'Deny'"""
-        return bool(self.effect == "Deny")
+        return self.effect == "Deny"
 
     @property
     def effect_allow(self) -> bool:
         """Check if the Effect of the Policy is 'Allow'"""
-        return bool(self.effect == "Allow")
+        return self.effect == "Allow"
 
     @property
     def services_in_use(self) -> List[str]:
@@ -192,34 +185,37 @@ class StatementDetail:
     def permissions_management_actions_without_constraints(self) -> List[str]:
         """Where applicable, returns a list of 'Permissions management' IAM actions in the statement that
         do not have resource constraints"""
-        result = []
-        if not self.has_resource_constraints:
-            result = remove_actions_not_matching_access_level(
+        return (
+            []
+            if self.has_resource_constraints
+            else remove_actions_not_matching_access_level(
                 self.restrictable_actions, "Permissions management"
             )
-        return result
+        )
 
     @property
     def write_actions_without_constraints(self) -> List[str]:
         """Where applicable, returns a list of 'Write' level IAM actions in the statement that
         do not have resource constraints"""
-        result = []
-        if not self.has_resource_constraints:
-            result = remove_actions_not_matching_access_level(
+        return (
+            []
+            if self.has_resource_constraints
+            else remove_actions_not_matching_access_level(
                 self.restrictable_actions, "Write"
             )
-        return result
+        )
 
     @property
     def tagging_actions_without_constraints(self) -> List[str]:
         """Where applicable, returns a list of 'Tagging' level IAM actions in the statement that
         do not have resource constraints"""
-        result = []
-        if not self.has_resource_constraints:
-            result = remove_actions_not_matching_access_level(
+        return (
+            []
+            if self.has_resource_constraints
+            else remove_actions_not_matching_access_level(
                 self.restrictable_actions, "Tagging"
             )
-        return result
+        )
 
     def missing_resource_constraints(
         self, exclusions: Exclusions = DEFAULT_EXCLUSIONS
@@ -260,10 +256,11 @@ class StatementDetail:
             exclusions
         )
 
-        always_actions_found = []
-        for action in actions_missing_resource_constraints:
-            if action.lower() in always_look_for_actions:
-                always_actions_found.append(action)
+        always_actions_found = [
+            action
+            for action in actions_missing_resource_constraints
+            if action.lower() in always_look_for_actions
+        ]
 
         modify_actions_missing_constraints = set()
         modify_actions_missing_constraints.update(
@@ -274,15 +271,10 @@ class StatementDetail:
         return list(modify_actions_missing_constraints)
 
     def _has_condition(self) -> bool:
-        if self.condition:
-            return True
-        return False
+        return bool(self.condition)
 
     def _has_resource_wildcard(self) -> bool:
         """Determine whether or not a wildcard is in the resources part."""
-        if len(self.resources) == 0:
-            # This is probably a NotResources situation which we do not support.
-            pass
         if len(self.resources) == 1 and self.resources[0] == "*":
             return True
         elif len(self.resources) > 1:  # pragma: no cover
@@ -292,6 +284,4 @@ class StatementDetail:
 
     def _has_resource_constraints(self) -> bool:
         """Determine whether or not the statement has resource constraints."""
-        if self.has_resource_wildcard and self.restrictable_actions:
-            return False
-        return True
+        return not self.has_resource_wildcard or not self.restrictable_actions

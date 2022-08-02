@@ -25,8 +25,9 @@ class AssumeRolePolicyDocument:
         if not isinstance(statement_structure, list):  # pragma: no cover
             statement_structure = [statement_structure]
 
-        for statement in statement_structure:
-            self.statements.append(AssumeRoleStatement(statement))
+        self.statements.extend(
+            AssumeRoleStatement(statement) for statement in statement_structure
+        )
 
     @property
     def json(self) -> Dict[str, Any]:
@@ -71,10 +72,7 @@ class AssumeRoleStatement:
             logger.debug("The AssumeRole Policy has no actions in it.")
             return []
 
-        if isinstance(actions, list):
-            return actions
-
-        return [actions]
+        return actions if isinstance(actions, list) else [actions]
 
     def _principals(self) -> List[str]:
         """Extracts all principals from IAM statement.

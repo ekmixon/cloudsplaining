@@ -58,7 +58,7 @@ class AuthorizationDetails:
     def inline_policies(self) -> Dict[str, Dict[str, Any]]:
         """Return inline policy details"""
         results = {}
-        results.update(self.group_detail_list.inline_policies_json)
+        results |= self.group_detail_list.inline_policies_json
         results.update(self.role_detail_list.inline_policies_json)
         results.update(self.user_detail_list.inline_policies_json)
         return results
@@ -66,7 +66,6 @@ class AuthorizationDetails:
     @property
     def links(self) -> Dict[str, str]:
         """Return a dictionary of the action names as keys and their API documentation links as values"""
-        results = {}
         unique_action_names = set()
         # unique_action_names will be in the InfrastructureModification block for any given policy.
         # So if it shows up in ResourceExposure, it will also be in InfrastructureModification
@@ -89,15 +88,16 @@ class AuthorizationDetails:
 
         all_action_links = get_all_action_links()
 
-        for action in unique_action_names:
-            if action in all_action_links:
-                results[action] = all_action_links[action]
-        return results
+        return {
+            action: all_action_links[action]
+            for action in unique_action_names
+            if action in all_action_links
+        }
 
     @property
     def results(self) -> Dict[str, Dict[str, Any]]:
         """Get the new JSON format of the Principals data"""
-        results: Dict[str, Dict[str, Any]] = {
+        return {
             "groups": self.group_detail_list.json,
             "users": self.user_detail_list.json,
             "roles": self.role_detail_list.json,
@@ -107,4 +107,3 @@ class AuthorizationDetails:
             "exclusions": self.exclusions.config,
             "links": self.links,
         }
-        return results

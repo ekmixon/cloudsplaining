@@ -31,39 +31,27 @@ class Exclusions:
 
     def _roles(self) -> List[str]:
         provided_roles = self.config.get("roles", [])
-        # Normalize for comparisons
-        roles = [role.lower() for role in provided_roles]
-        return roles
+        return [role.lower() for role in provided_roles]
 
     def _users(self) -> List[str]:
         provided_users = self.config.get("users", [])
-        # Normalize for comparisons
-        users = [user.lower() for user in provided_users]
-        return users
+        return [user.lower() for user in provided_users]
 
     def _groups(self) -> List[str]:
         provided_groups = self.config.get("groups", [])
-        # Normalize for comparisons
-        groups = [group.lower() for group in provided_groups]
-        return groups
+        return [group.lower() for group in provided_groups]
 
     def _policies(self) -> List[str]:
         provided_policies = self.config.get("policies", [])
-        # Normalize for comparisons
-        policies = [policy.lower() for policy in provided_policies]
-        return policies
+        return [policy.lower() for policy in provided_policies]
 
     def _include_actions(self) -> List[str]:
         include_actions = self.config.get("include-actions", [])
-        # Set to lowercase so subsequent evaluations are faster.
-        always_include_actions = [x.lower() for x in include_actions]
-        return always_include_actions
+        return [x.lower() for x in include_actions]
 
     def _exclude_actions(self) -> List[str]:
         exclude_actions = self.config.get("exclude-actions", [])
-        # Set to lowercase so subsequent evaluations are faster.
-        always_exclude_actions = [x.lower() for x in exclude_actions]
-        return always_exclude_actions
+        return [x.lower() for x in exclude_actions]
 
     def is_action_always_included(self, action_in_question: str) -> Union[bool, str]:
         """
